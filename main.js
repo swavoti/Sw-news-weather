@@ -10,6 +10,8 @@ import { PinterestFeed } from './pinterest_feed.js';
 import { WeatherPage } from './weather_page.js';
 import { ArticleReader } from './article_reader.js';
 import { AlertDetailPage } from './alert_detail_page.js';
+import { AutoUpdater } from './updater.js';
+import { SettingsPage } from './settings_page.js';
 
 const SwavotiNewsApp = GObject.registerClass(
 class SwavotiNewsApp extends Adw.Application {
@@ -64,8 +66,15 @@ class SwavotiNewsApp extends Adw.Application {
 
             this.newsBtn = createNavBtn('news', 'news_lucide.svg', 'NEWS');
             this.weatherBtn = createNavBtn('weather', 'weather_lucide.svg', 'WEATHER');
+            this.settingsBtn = createNavBtn('settings', 'settings_lucide.svg', 'SETTINGS');
+            
             this.sidebar.append(this.newsBtn);
             this.sidebar.append(this.weatherBtn);
+            
+            const spacer = new Gtk.Box({ vexpand: true });
+            this.sidebar.append(spacer);
+            this.sidebar.append(this.settingsBtn);
+            
             this.updateNavHighlight('news');
 
             const contentBox = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL, hexpand: true });
@@ -89,6 +98,9 @@ class SwavotiNewsApp extends Adw.Application {
             header.pack_start(logo);
             header.pack_start(new WeatherHeaderWidget());
 
+            this.updateBanner = new Gtk.Label({ label: "DOWNLOADING UPDATE...", css_classes: ['blue-text', 'bold'], visible: false });
+            header.pack_start(this.updateBanner);
+
             this.searchEntry = new Gtk.SearchEntry({ placeholder_text: 'Search news...', hexpand: true });
             header.set_title_widget(this.searchEntry);
             toolbarView.add_top_bar(header);
@@ -109,7 +121,39 @@ class SwavotiNewsApp extends Adw.Application {
             this.alertDetailPage = new AlertDetailPage();
             this.stack.add_named(this.alertDetailPage, 'alert_detail');
 
+            this.settingsPage = new SettingsPage();
+            this.stack.add_named(this.settingsPage, 'settings');
+
             toolbarView.set_content(this.stack);
+
+            // Auto Updater Integration
+            this.updater = new AutoUpdater();
+            
+            this.updater.connect('update-available', () => {
+                this.settingsPage.showUpdateAvailable();
+                if (this.stack.get_visible_child_name() !== 'settings') {
+                    this.updateBanner.set_label("UPDATE AVAILABLE");
+                    this.updateBanner.visible = true;
+                }
+            });
+
+            this.updater.connect('update-progress', (_, msg) => {
+                this.settingsPage.showUpdateProgress(msg);
+                this.updateBanner.set_label(msg);
+                this.updateBanner.visible = true;
+            });
+
+            this.updater.connect('update-error', (_, msg) => {
+                this.settingsPage.showUpdateError(msg);
+                this.updateBanner.set_label("UPDATE FAILED");
+                GLib.timeout_add(GLib.PRIORITY_DEFAULT, 3000, () => {
+                    this.updateBanner.visible = false;
+                    return GLib.SOURCE_REMOVE;
+                });
+            });
+
+            this.settingsPage.connect('check-updates', () => this.updater.checkForUpdates());
+            this.settingsPage.connect('apply-update', () => this.updater.applyUpdate());
 
             // Back button for alert detail
             this.alertDetailPage.backBtn.connect('clicked', () => {

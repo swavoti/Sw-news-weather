@@ -1,0 +1,7 @@
+# Build artifacts
+*.deb
+swavoti-news_*
+package/
+
+# Other potential temp files
+.DS_Store
