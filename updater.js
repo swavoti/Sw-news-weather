@@ -55,10 +55,11 @@ export const AutoUpdater = GObject.registerClass({
         this.emit('update-progress', 'Downloading new code...');
         
         try {
-            // Pull changes
-            const [pullSuccess, pullOut, pullErr] = GLib.spawn_command_line_sync('git pull origin main');
+            // Bulletproof OTA Update: Fetch and hard reset to discard any dirty local state
+            const [fetchSuccess] = GLib.spawn_command_line_sync('git fetch origin');
+            const [resetSuccess, pullOut, pullErr] = GLib.spawn_command_line_sync('git reset --hard origin/main');
             
-            if (pullSuccess) {
+            if (resetSuccess) {
                 console.log('Updater: Update pulled successfully. Restarting...');
                 this.emit('update-progress', 'Restarting application...');
                 
