@@ -37,3 +37,5 @@ Bash
 sudo apt remove swavoti-news
 License
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+The product name Swavoti  and its assets is a trademark of Swavoti South Africa pty ltd 
