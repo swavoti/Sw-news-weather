@@ -34,7 +34,7 @@ USER_DIR="\$HOME/.local/share/swavoti-news-weather"
 if [ ! -d "\$USER_DIR" ]; then
     echo "First run detected. Initializing Swavoti News in user directory for OTA updates..."
     mkdir -p "\$HOME/.local/share"
-    git clone https://github.com/nguyenblacks/swavoti-news-weather.git "\$USER_DIR"
+    git clone https://github.com/swavoti/Sw-news-weather "\$USER_DIR"
 fi
 
 cd "\$USER_DIR"
@@ -52,7 +52,7 @@ chmod +x "$PKG_NAME/usr/bin/swavoti-news"
 cat <<EOF > "$PKG_NAME/usr/share/applications/swavoti-news.desktop"
 [Desktop Entry]
 Name=Swavoti News
-Comment=Premium News and Weather Dashboard
+Comment=Premium News and Weather platform
 Exec=swavoti-news
 Icon=swavoti-news
 Terminal=false
